@@ -2,17 +2,28 @@
 PATHTO=/home/damien/homeserv/;
 DESTDIR=${PATHTO}office-backup/;
 SOURCEDIR=damien@192.168.1.116:office/;
+BACKUPCOUNT=10;
+
+#Sync before archive
 rsync -avz -e ssh ${SOURCEDIR} ${DESTDIR}
 RETVAL=$?
 if [ $RETVAL -eq 0 ];
 then
-    #cd ${PATHTO}/archive/;
-    #cd $DESTDIR;
-    pwd;
+    #Remove oldest file if backup count reached
+    FILECOUNT=$(ls | wc -l);
+    if [ $FILECOUNT -ge $BACKUPCOUNT ]
+    then
+        echo "oldest file is "$(ls -tr ${PATHTO}/archive | head -n 1);
+        rm -f ${PATHTO}/archive/$(ls -tr ${PATHTO}/archive | head -n 1);
+        echo "REMOVED OLDEST FILE";
+    fi
+
+    #Archive
     sudo tar -cvzf ${PATHTO}archive/$(date +%Y%m%d).tar.gz ${DESTDIR};
     RETVAL=$?
     if [ $RETVAL -eq 0 ];
     then
+        #Remove all deleted files
         rsync -avz -e ssh ${SOURCEDIR} ${DESTDIR} --delete
         echo "SUCCESS";
     fi
