@@ -1,0 +1,19 @@
+#!/bin/bash
+PATHTO=/home/damien/homeserv/;
+DESTDIR=${PATHTO}office-backup/;
+SOURCEDIR=damien@192.168.1.116:office/;
+rsync -avz -e ssh ${SOURCEDIR} ${DESTDIR}
+RETVAL=$?
+if [ $RETVAL -eq 0 ];
+then
+    #cd ${PATHTO}/archive/;
+    #cd $DESTDIR;
+    pwd;
+    sudo tar -cvzf ${PATHTO}archive/$(date +%Y%m%d).tar.gz ${DESTDIR};
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ];
+    then
+        rsync -avz -e ssh ${SOURCEDIR} ${DESTDIR} --delete
+        echo "SUCCESS";
+    fi
+fi

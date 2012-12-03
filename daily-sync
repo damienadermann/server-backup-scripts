@@ -1,0 +1,4 @@
+#!/bin/bash
+SOURCEDIR=damien@192.168.1.116:office/
+DESTDIR=/home/damien/homeserv/office-backup/
+rsync -avz -e ssh $SOURCEDIR $DESTDIR
