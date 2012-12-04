@@ -7,9 +7,13 @@ BACKUPCOUNT=10;
 BACKUPDIR=${BASEPATH}office-backup/;
 ARCHIVEDIR=${BASEPATH}archive/;
 
+BASELOG="Weekly sync and archive on ($(date +%Y-%m-%d)): "
+
 #Make directories if they don't already exist
 mkdir -p $BACKUPDIR
 mkdir -p $ARCHIVEDIR
+touch ${BASEPATH}/log.txt;
+touch ${BASEPATH}/rsync.log;
 
 #Sync before archive
 rsync -avz -e ssh ${SOURCEDIR} ${BACKUPDIR}
@@ -21,7 +25,7 @@ then
     if [ $FILECOUNT -ge $BACKUPCOUNT ]
     then
         rm -f ${ARCHIVEDIR}$(ls -tr ${BASEPATH}/archive | head -n 1);
-        echo "REMOVED OLDEST FILE";
+        echo ${BASELOG}REMOVED OLDEST FILE;
     fi
 
     #Archive
@@ -31,6 +35,16 @@ then
     then
         #Remove all deleted files
         rsync -avz -e ssh ${SOURCEDIR} ${BACKUPDIR} --delete
-        echo "SUCCESS";
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ];
+        then
+            echo ${BASELOG}SUCCESS >> ${BASEPATH}/log.txt;
+        else
+            echo ${BASELOG}FAILED DELETED FILES CLEAN UP >> ${BASEPATH}/log.txt;
+        fi
+    else
+        echo ${BASELOG}FAILED ARCHIVE >> ${BASEPATH}/log.txt;
     fi
+else
+    echo ${BASELOG}FAILED SYNC >> ${BASEPATH}/log.txt;
 fi

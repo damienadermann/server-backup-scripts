@@ -6,7 +6,23 @@ BACKUPCOUNT=10;
 
 BACKUPDIR=${BASEPATH}office-backup/;
 
+BASELOG="Daily sync on ($(date +%Y-%m-%d)): "
+
 #Make directories if they don't already exist
 mkdir -p $BACKUPDIR
+touch ${BASEPATH}/log.txt;
+touch ${BASEPATH}/rsync.log;
 
-rsync -avz -e ssh ${SOURCEDIR} ${BACKUPDIR}
+rsync -avz -e ssh ${SOURCEDIR} ${BACKUPDIR} 2>&1 >> ${BASEPATH}/rsync.log
+
+RETVAL=$?
+if [ $RETVAL -eq 0 ]
+then
+    echo ${BASELOG} SUCCESS >> ${BASEPATH}/log.txt;
+else
+    echo ${BASELOG} FAILED SYNC exit status ${RETVAL} >> ${BASEPATH}/log.txt;
+    if [ $RETVAL -eq 1]
+    then
+        cat ${BASEPATH}/log.txt | mail -s "file server backup failed" fitto@punchbuggy.com.au;
+    fi
+fi
