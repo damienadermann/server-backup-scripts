@@ -1,11 +1,18 @@
 #!/bin/bash
-PATHTO=/home/damien/homeserv/;
-DESTDIR=${PATHTO}office-backup/;
+
+BASEPATH=/home/damien/homeserv/;
 SOURCEDIR=damien@192.168.1.116:office/;
 BACKUPCOUNT=10;
 
+BACKUPDIR=${BASEPATH}office-backup/;
+ARCHIVEDIR=${BASEPATH}archive/;
+
+#Make directories if they don't already exist
+mkdir -p $BACKUPDIR
+mkdir -p $ARCHIVEDIR
+
 #Sync before archive
-rsync -avz -e ssh ${SOURCEDIR} ${DESTDIR}
+rsync -avz -e ssh ${SOURCEDIR} ${BACKUPDIR}
 RETVAL=$?
 if [ $RETVAL -eq 0 ];
 then
@@ -13,18 +20,17 @@ then
     FILECOUNT=$(ls | wc -l);
     if [ $FILECOUNT -ge $BACKUPCOUNT ]
     then
-        echo "oldest file is "$(ls -tr ${PATHTO}/archive | head -n 1);
-        rm -f ${PATHTO}/archive/$(ls -tr ${PATHTO}/archive | head -n 1);
+        rm -f ${ARCHIVEDIR}$(ls -tr ${BASEPATH}/archive | head -n 1);
         echo "REMOVED OLDEST FILE";
     fi
 
     #Archive
-    sudo tar -cvzf ${PATHTO}archive/$(date +%Y%m%d).tar.gz ${DESTDIR};
+    sudo tar -cvzf ${ARCHIVEDIR}$(date +%Y%m%d).tar.gz ${BACKUPDIR};
     RETVAL=$?
     if [ $RETVAL -eq 0 ];
     then
         #Remove all deleted files
-        rsync -avz -e ssh ${SOURCEDIR} ${DESTDIR} --delete
+        rsync -avz -e ssh ${SOURCEDIR} ${BACKUPDIR} --delete
         echo "SUCCESS";
     fi
 fi
