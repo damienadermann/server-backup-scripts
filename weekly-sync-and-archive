@@ -25,7 +25,7 @@ then
     fi
 
     #Archive
-    sudo tar -cvzf ${ARCHIVEDIR}$(date +%Y%m%d).tar.gz ${BACKUPDIR};
+    tar -cvzf ${ARCHIVEDIR}$(date +%Y%m%d).tar.gz ${BACKUPDIR};
     RETVAL=$?
     if [ $RETVAL -eq 0 ];
     then
